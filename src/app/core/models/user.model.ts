@@ -21,9 +21,12 @@ export interface User {
 export interface AuthResponse {
     success: boolean;
     message: string;
-    token: string;
-    user: User;
+    data: {
+        user: User;
+        token: string;
+    };
 }
+
 
 export interface LoginRequest {
     email: string;

@@ -14,6 +14,7 @@ import { CustomValidators } from '../../../../shared/validators/custom-validator
   styleUrl: './signup.component.css'
 })
 export class SignupComponent {
+
   signupForm: FormGroup;
   successMessage: string = '';
   errorMessage: string = '';
@@ -88,6 +89,7 @@ export class SignupComponent {
         next: (response) => {
           this.successMessage = 'Account created successfully!';
           // User is automatically logged in and redirected
+          
           setTimeout(() => {
             this.router.navigate(['/events']);
           }, 2000);
