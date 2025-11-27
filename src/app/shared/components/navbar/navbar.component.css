@@ -2,8 +2,10 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 1rem 2rem;
   box-shadow: 0 4px 20px rgba(102, 126, 234, 0.3);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 1000;
 }
 
@@ -115,6 +117,15 @@
 
 .btn-icon i {
   font-size: 1.125rem;
+}
+
+.btn-create-event {
+  background: rgba(255, 255, 255, 0.25) !important;
+}
+
+.btn-create-event:hover {
+  background: rgba(255, 255, 255, 0.35) !important;
+  transform: scale(1.1) rotate(90deg);
 }
 
 /* Notification Badge */

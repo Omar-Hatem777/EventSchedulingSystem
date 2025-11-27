@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import {AuthService} from '../../../core/services/auth.service';
@@ -17,7 +17,13 @@ export class NavbarComponent {
   notificationsCount: number = 3;
   showNotifications: boolean = false;
 
+  @Output() createEventClick = new EventEmitter<void>();
+
   constructor(private authService: AuthService) {}
+
+  onCreateEventClick(): void {
+    this.createEventClick.emit();
+  }
 
   notifications = [
     { id: 1, message: 'New event registration received', time: '5 min ago', read: false },

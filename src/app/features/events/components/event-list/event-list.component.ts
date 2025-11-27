@@ -32,6 +32,24 @@ export class EventListComponent implements OnInit {
   inviteRole = 'Attendee';
   invitingEvent: Event | null = null;
 
+  // Create event modal
+  showCreateEventModal = false;
+  creatingEvent = false;
+  createEventError: string | null = null;
+  validationErrors: string[] = [];
+  newEvent = {
+    title: '',
+    description: '',
+    date: '',
+    time: '',
+    location: ''
+  };
+
+  // Toast messages
+  showToast = false;
+  toastMessage = '';
+  toastType: 'success' | 'error' | 'info' = 'info';
+
   constructor(private eventService: EventService, private router: Router) {}
 
   ngOnInit(): void {
@@ -48,7 +66,7 @@ export class EventListComponent implements OnInit {
       },
       error: () => {
         this.loading = false;
-        alert('Failed to load events');
+        this.showToastMessage('Failed to load events', 'error');
       }
     });
   }
@@ -72,7 +90,10 @@ export class EventListComponent implements OnInit {
       next: () => {
         this.allEvents = this.allEvents.filter(e => e.id !== event.id);
         this.filteredEvents = this.filteredEvents.filter(e => e.id !== event.id);
-        alert("Event deleted");
+        this.showToastMessage('Event deleted successfully', 'success');
+      },
+      error: () => {
+        this.showToastMessage('Failed to delete event', 'error');
       }
     });
   }
@@ -95,12 +116,15 @@ export class EventListComponent implements OnInit {
 
     this.eventService.getEventParticipants(event.id).subscribe({
       next: (res) => {
+        console.log('Participants response:', res);
         this.participants = res.data.participantsData;
+        console.log('Processed participants:', this.participants);
         this.loadingParticipants = false;
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error loading participants:', error);
         this.loadingParticipants = false;
-        alert('Failed to load participants');
+        this.showToastMessage('Failed to load participants', 'error');
       }
     });
   }
@@ -120,19 +144,130 @@ export class EventListComponent implements OnInit {
   }
 
   sendInvitation(): void {
-    if (!this.invitingEvent || !this.inviteUserId) return;
+    if (!this.invitingEvent || !this.inviteUserId) {
+      this.showToastMessage('Please enter a valid User ID', 'error');
+      return;
+    }
 
     const inviteData = {
       userId: this.inviteUserId,
       role: this.inviteRole
     };
 
+    console.log('Sending invitation:', { eventId: this.invitingEvent.id, inviteData });
+
     this.eventService.inviteUser(this.invitingEvent.id, inviteData).subscribe({
-      next: () => {
-        alert('Invitation sent!');
+      next: (response) => {
+        console.log('Invitation response:', response);
+        this.showToastMessage('Invitation sent successfully!', 'success');
         this.showInviteModal = false;
+        this.inviteUserId = null;
+        this.inviteRole = 'Attendee';
+        this.invitingEvent = null;
       },
-      error: () => alert('Failed to send invitation')
+      error: (error) => {
+        console.error('Invitation error:', error);
+        const errorMessage = error?.error?.message || error?.message || 'Failed to send invitation';
+        this.showToastMessage(`Failed to send invitation: ${errorMessage}`, 'error');
+      }
     });
+  }
+
+  // Create Event
+  openCreateEventModal(): void {
+    console.log('FAB clicked - opening create event modal');
+    this.newEvent = {
+      title: '',
+      description: '',
+      date: '',
+      time: '',
+      location: ''
+    };
+    this.createEventError = null;
+    this.validationErrors = [];
+    this.showCreateEventModal = true;
+  }
+
+  closeCreateEventModal(): void {
+    this.showCreateEventModal = false;
+    this.newEvent = {
+      title: '',
+      description: '',
+      date: '',
+      time: '',
+      location: ''
+    };
+    this.createEventError = null;
+    this.validationErrors = [];
+  }
+
+  onCreateEvent(): void {
+    if (!this.newEvent.title || !this.newEvent.description || !this.newEvent.date || !this.newEvent.time || !this.newEvent.location) {
+      return;
+    }
+
+    this.creatingEvent = true;
+    
+    // Log the data being sent for debugging
+    console.log('Creating event with data:', this.newEvent);
+    
+    this.eventService.createEvent(this.newEvent).subscribe({
+      next: (response) => {
+        console.log('Event created successfully:', response);
+        this.showToastMessage('Event created successfully!', 'success');
+        this.closeCreateEventModal();
+        // Auto-refresh events after creation
+        this.loadEvents();
+        this.creatingEvent = false;
+      },
+      error: (error) => {
+        console.error('Error creating event:', error);
+        this.creatingEvent = false;
+        
+        // Extract validation errors from the API response
+        this.createEventError = 'Failed to create event';
+        this.validationErrors = [];
+        
+        if (error?.error?.errors && Array.isArray(error.error.errors)) {
+          this.validationErrors = error.error.errors.map((err: any) => {
+            const field = err.field || err.property || err.path || 'Field';
+            const message = err.message || err.defaultMessage || 'Invalid value';
+            // Capitalize first letter and format field name
+            const formattedField = field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1').trim();
+            return `${formattedField}: ${message}`;
+          });
+          this.createEventError = 'Validation failed. Please check the errors below:';
+        } else if (error?.error?.message) {
+          this.createEventError = error.error.message;
+        } else if (error?.message) {
+          this.createEventError = error.message;
+        }
+      }
+    });
+  }
+
+  // Refresh events
+  refreshEvents(): void {
+    this.searchQuery = '';
+    this.filteredEvents = [...this.allEvents];
+    this.loadEvents();
+  }
+
+  // Clear errors when user starts editing
+  clearErrors(): void {
+    if (this.createEventError) {
+      this.createEventError = null;
+      this.validationErrors = [];
+    }
+  }
+
+  // Show toast message
+  showToastMessage(message: string, type: 'success' | 'error' | 'info' = 'info'): void {
+    this.toastMessage = message;
+    this.toastType = type;
+    this.showToast = true;
+    setTimeout(() => {
+      this.showToast = false;
+    }, 5000);
   }
 }
