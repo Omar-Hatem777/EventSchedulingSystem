@@ -1,1 +1,79 @@
-<p>navbar works!</p>
+<nav class="navbar-custom">
+  <div class="container-fluid">
+    <div class="navbar-content">
+      <!-- Logo/Brand -->
+      <div class="navbar-brand-custom">
+        <div class="brand-icon">
+          <i class="fa-solid fa-calendar-check"></i>
+        </div>
+        <span class="brand-text">EventPlanner</span>
+      </div>
+
+      <!-- Navigation Links -->
+      <div class="navbar-nav-custom">
+        <a
+          [routerLink]="['/events']"
+          class="nav-link-custom"
+          [class.active]="activeTab === 'organized'"
+          (click)="setActiveTab('organized')">
+          <i class="fa-solid fa-calendar-days me-2"></i>
+          Organized Events
+        </a>
+        <a
+          [routerLink]="['/event-form']"
+          class="nav-link-custom"
+          [class.active]="activeTab === 'create'"
+          (click)="setActiveTab('create')">
+          <i class="fa-solid fa-plus-circle me-2"></i>
+          Create New Event
+        </a>
+      </div>
+
+      <!-- Right Side Actions -->
+      <div class="navbar-actions">
+        <!-- Notifications -->
+        <div class="notification-wrapper">
+          <button
+            class="btn-icon"
+            (click)="toggleNotifications()"
+            [class.has-notifications]="notificationsCount > 0">
+            <i class="fa-solid fa-bell"></i>
+            <span class="notification-badge" *ngIf="notificationsCount > 0">
+              {{ notificationsCount }}
+            </span>
+          </button>
+
+          <!-- Notifications Dropdown -->
+          <div class="notifications-dropdown" *ngIf="showNotifications">
+            <div class="notifications-header">
+              <h6 class="mb-0">Notifications</h6>
+              <span class="badge-count">{{ notificationsCount }} new</span>
+            </div>
+            <div class="notifications-list">
+              <div
+                *ngFor="let notification of notifications"
+                class="notification-item"
+                [class.unread]="!notification.read"
+                (click)="markAsRead(notification)">
+                <div class="notification-content">
+                  <p class="notification-message">{{ notification.message }}</p>
+                  <span class="notification-time">{{ notification.time }}</span>
+                </div>
+                <div class="notification-indicator" *ngIf="!notification.read"></div>
+              </div>
+            </div>
+            <div class="notifications-footer">
+              <a href="#" class="view-all-link">View all notifications</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logout Button -->
+        <button class="btn-logout" (click)="logout()">
+          <i class="fa-solid fa-right-from-bracket me-2"></i>
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>

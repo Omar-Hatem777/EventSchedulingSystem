@@ -24,14 +24,19 @@ export class AuthApiService {
   }
 
 
-  // Verify token 
+  // Verify token
   verifyToken(): Observable<{ valid: boolean; user?: any }> {
     return this.http.get<{ valid: boolean; user?: any }>(`${this.apiUrl}/verify`);
   }
 
 
-  // Refresh token (optional - if you implement refresh tokens)
+  // Refresh token
   refreshToken(refreshToken: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/refresh`, { refreshToken });
+  }
+
+  // Logout user
+  logout(): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(`${this.apiUrl}/logout`, {});
   }
 }

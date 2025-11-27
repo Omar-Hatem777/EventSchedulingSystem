@@ -1,1 +1,119 @@
-<p>event-list works!</p>
+<app-navbar></app-navbar>
+
+<div class="event-list-container">
+  <div class="page-header">
+    <h1 class="page-title">
+      <i class="fa-solid fa-calendar-days"></i> All Events
+    </h1>
+  </div>
+
+  <!-- Search input -->
+  <div class="search-section">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search events..."
+      [(ngModel)]="searchQuery"
+      (input)="onSearchChange()"
+    />
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading events...</p>
+  </div>
+
+  <!-- Events -->
+  <div *ngIf="!loading" class="events-grid">
+    <app-event-card
+      *ngFor="let event of filteredEvents"
+      [event]="event"
+      (deleteEvent)="onDeleteEvent(event)"
+      (updateStatus)="onUpdateStatus($event)"
+      (viewParticipants)="onViewParticipants(event)"
+      (createInvitation)="onCreateInvitation(event)"
+    ></app-event-card>
+  </div>
+
+  <div *ngIf="filteredEvents.length === 0 && !loading" class="empty-state">
+    <p>No events found</p>
+  </div>
+</div>
+
+<!-- Participants Modal -->
+<div class="modal-overlay" *ngIf="showParticipantsModal" (click)="closeParticipantsModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <i class="fa-solid fa-users"></i>
+        Participants — {{ activeEventParticipants?.title }}
+      </h2>
+      <button class="btn-close" (click)="closeParticipantsModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="modal-body">
+      <div *ngIf="loadingParticipants" class="loading-participants">
+        <div class="spinner-small"></div>
+        <p>Loading participants...</p>
+      </div>
+
+      <div *ngIf="!loadingParticipants && participants.length > 0" class="participants-list">
+        <div class="participant-card" *ngFor="let p of participants">
+          <div class="participant-avatar"><i class="fa-solid fa-user"></i></div>
+          <div class="participant-info">
+            <h4>{{ p.fullName }}</h4>
+            <p class="participant-username">{{ p.username }}</p>
+            <p class="participant-email">{{ p.email }}</p>
+          </div>
+          <div class="participant-status" [ngClass]="p.isActive ? 'active' : 'inactive'">
+            {{ p.isActive ? 'Active' : 'Inactive' }}
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="!loadingParticipants && participants.length === 0" class="empty-participants">
+        <i class="fa-solid fa-user-slash"></i>
+        <p>No participants yet</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Invitation Modal -->
+<div class="modal-overlay" *ngIf="showInviteModal" (click)="showInviteModal = false">
+  <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <i class="fa-solid fa-envelope"></i>
+        Create Invitation — {{ invitingEvent?.title }}
+      </h2>
+      <button class="btn-close" (click)="showInviteModal = false"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div class="modal-body">
+      <form (ngSubmit)="sendInvitation()">
+        <div class="form-group">
+          <label>User ID</label>
+          <input type="number" class="form-control" [(ngModel)]="inviteUserId" name="userId" required />
+        </div>
+
+        <div class="form-group">
+          <label>Role</label>
+          <select class="form-control" [(ngModel)]="inviteRole" name="role">
+            <option value="Attendee">Attendee</option>
+            <option value="Organizer">Organizer</option>
+            <option value="Speaker">Speaker</option>
+          </select>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="showInviteModal = false">Cancel</button>
+          <button type="submit" class="btn-submit">
+            <i class="fa-solid fa-paper-plane"></i> Send Invitation
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
