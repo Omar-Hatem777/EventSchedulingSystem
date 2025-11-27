@@ -36,13 +36,13 @@ export class EventService {
     return this.eventApiService.getOrganizedEvents().pipe(
       tap(response => {
         if (response.success) {
-          console.log('✅ Organized events loaded:', response.data.eventsData);
+          console.log('Organized events loaded:', response.data.eventsData);
           this.organizedEventsSubject.next(response.data.eventsData);
         }
         this.loadingSubject.next(false);
       }),
       catchError(error => {
-        console.error('❌ Error loading organized events:', error);
+        console.error('Error loading organized events:', error);
         this.errorSubject.next(error.message || 'Failed to load events');
         this.loadingSubject.next(false);
         return throwError(() => error);
@@ -52,20 +52,20 @@ export class EventService {
 
   // Get single event by ID
   getEventById(eventId: string): Observable<any> {
-    console.log('📥 Loading event:', eventId);
+    console.log('Loading event:', eventId);
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
     return this.eventApiService.getEventById(eventId).pipe(
       tap(response => {
         if (response.success) {
-          console.log('✅ Event loaded:', response.data.event);
+          console.log('Event loaded:', response.data.event);
           this.selectedEventSubject.next(response.data.event);
         }
         this.loadingSubject.next(false);
       }),
       catchError(error => {
-        console.error('❌ Error loading event:', error);
+        console.error('Error loading event:', error);
         this.errorSubject.next(error.message || 'Failed to load event');
         this.loadingSubject.next(false);
         return throwError(() => error);
@@ -75,14 +75,14 @@ export class EventService {
 
   // Create new event
   createEvent(eventData: any): Observable<any> {
-    console.log('📤 Creating event:', eventData);
+    console.log('Creating event:', eventData);
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
     return this.eventApiService.createEvent(eventData).pipe(
       tap(response => {
         if (response.success) {
-          console.log('✅ Event created:', response.data.event);
+          console.log('Event created:', response.data.event);
           // Add new event to the organized events list
           const currentEvents = this.organizedEventsSubject.value;
           this.organizedEventsSubject.next([response.data.event, ...currentEvents]);
@@ -90,7 +90,7 @@ export class EventService {
         this.loadingSubject.next(false);
       }),
       catchError(error => {
-        console.error('❌ Error creating event:', error);
+        console.error('Error creating event:', error);
         this.errorSubject.next(error.message || 'Failed to create event');
         this.loadingSubject.next(false);
         return throwError(() => error);
@@ -100,7 +100,7 @@ export class EventService {
 
   // Update event status
   updateEventStatus(eventId: string, newStatus: EventStatus): Observable<any> {
-    console.log('📤 Updating event status:', eventId, newStatus);
+    console.log('Updating event status:', eventId, newStatus);
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
@@ -109,7 +109,7 @@ export class EventService {
     return this.eventApiService.updateEventStatus(eventId, updateData.status).pipe(
       tap((response:any) => {
         if (response.success) {
-          console.log('✅ Event status updated:', response.data.event);
+          console.log('Event status updated:', response.data.event);
 
           // Update event in the organized events list
           const currentEvents = this.organizedEventsSubject.value;
@@ -137,14 +137,14 @@ export class EventService {
 
   // Delete event
   deleteEvent(eventId: string): Observable<any> {
-    console.log('🗑️ Deleting event:', eventId);
+    console.log('Deleting event:', eventId);
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
     return this.eventApiService.deleteEvent(eventId).pipe(
       tap(response => {
         if (response.success) {
-          console.log('✅ Event deleted:', eventId);
+          console.log('Event deleted:', eventId);
           // Remove event from the organized events list
           const currentEvents = this.organizedEventsSubject.value;
           const filteredEvents = currentEvents.filter(event => event.id !== eventId);
@@ -159,7 +159,7 @@ export class EventService {
         this.loadingSubject.next(false);
       }),
       catchError(error => {
-        console.error('❌ Error deleting event:', error);
+        console.error('Error deleting event:', error);
         this.errorSubject.next(error.message || 'Failed to delete event');
         this.loadingSubject.next(false);
         return throwError(() => error);
@@ -169,17 +169,17 @@ export class EventService {
 
   // Get event participants/attendees
   getEventParticipants(eventId: string): Observable<any> {
-    console.log('📥 Loading participants for event:', eventId);
+    console.log('Loading participants for event:', eventId);
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
     return this.eventApiService.getEventParticipants(eventId).pipe(
       tap(response => {
-        console.log('✅ Participants loaded:', response);
+        console.log('Participants loaded:', response);
         this.loadingSubject.next(false);
       }),
       catchError(error => {
-        console.error('❌ Error loading participants:', error);
+        console.error('Error loading participants:', error);
         this.errorSubject.next(error.message || 'Failed to load participants');
         this.loadingSubject.next(false);
         return throwError(() => error);
@@ -189,19 +189,19 @@ export class EventService {
 
   // Invite user to event
   inviteUser(eventId: string, inviteData: InviteUserRequest): Observable<InviteUserResponse> {
-    console.log('📤 Inviting user to event:', eventId, inviteData);
+    console.log('Inviting user to event:', eventId, inviteData);
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
 
     return this.eventApiService.inviteUser(eventId, inviteData).pipe(
       tap(response => {
         if (response.success) {
-          console.log('✅ User invited successfully:', response.data);
+          console.log('User invited successfully:', response.data);
         }
         this.loadingSubject.next(false);
       }),
       catchError(error => {
-        console.error('❌ Error inviting user:', error);
+        console.error('Error inviting user:', error);
         this.errorSubject.next(error.message || 'Failed to invite user');
         this.loadingSubject.next(false);
         return throwError(() => error);

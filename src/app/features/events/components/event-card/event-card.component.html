@@ -15,12 +15,18 @@
           <i class="fas fa-users"></i> View Participants
         </button>
 
-        <button class="action-item" (click)="onCreateInvitation($event)">
+        <button 
+          class="action-item" 
+          (click)="onCreateInvitation($event)"
+          *ngIf="event.status !== 'Cancelled'">
           <i class="fas fa-envelope"></i> Create Invitation
         </button>
 
-        <button class="action-item action-delete" (click)="onDelete($event)">
-          <i class="fas fa-trash"></i> Delete Event
+        <button 
+          class="action-item action-delete" 
+          (click)="onDelete($event)"
+          *ngIf="event.status !== 'Cancelled'">
+          <i class="fas fa-trash"></i> Delete
         </button>
       </div>
     </div>

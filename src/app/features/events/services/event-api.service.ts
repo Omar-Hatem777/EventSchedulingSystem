@@ -59,4 +59,6 @@ export class EventApiService {
   inviteUser(eventId: string, inviteData: InviteUserRequest): Observable<InviteUserResponse> {
     return this.http.post<InviteUserResponse>(`${this.apiUrl}/${eventId}/invite`, inviteData);
   }
+
+
 }

@@ -89,6 +89,7 @@ export interface ParticipantUser {
   isActive: boolean;
   createdAt: string;
   lastLogin: string | null;
+  role?: string;
 }
 
 export interface ParticipantsResponse {
