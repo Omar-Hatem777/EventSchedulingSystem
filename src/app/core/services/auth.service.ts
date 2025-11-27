@@ -82,19 +82,55 @@ export class AuthService {
   }
 
 
+
   // Logout user
   logout(): void {
+    console.log('🚪 Logout started...');
+
+    // Get token before clearing
+    const token = this.getToken();
+
+    if (!token) {
+      // No token, just clear and redirect
+      console.log("No token found")
+      this.clearAuthData();
+      return;
+    }
+
+    // Call API with existing token
+    this.authApiService.logout().subscribe({
+      next: (response) => {
+        console.log('✅ API logout success:', response);
+        this.clearAuthData();
+      },
+      error: (error) => {
+        console.error('❌ API logout error:', error);
+        // Clear anyway - user wants to logout
+        this.clearAuthData();
+      },
+      complete: () => {
+        console.log('🏁 Logout process completed');
+      }
+    });
+  }
+
+  // Helper method to clear authentication data
+  private clearAuthData(): void {
     // Clear storage
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    console.log('Local storage cleared');
 
     // Update state
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
+    console.log('Auth state updated');
 
     // Redirect to login
     this.router.navigate(['/login']);
+    console.log('Redirected to login');
   }
+
 
   // Get current user
   getCurrentUser(): User | null {
@@ -123,5 +159,5 @@ export class AuthService {
       })
     );
   }
-  
+
 }

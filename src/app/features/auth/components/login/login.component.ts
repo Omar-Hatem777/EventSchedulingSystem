@@ -41,6 +41,7 @@ export class LoginComponent {
 
       this.authService.login(this.loginForm.value).subscribe({
         next: (response) => {
+          console.log('Login response:', response);
           this.successMessage = 'Login successful! Redirecting...';
           this.loading = false;
 
@@ -68,5 +69,5 @@ export class LoginComponent {
     }
   }
 
-  
+
 }
