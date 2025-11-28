@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import {environment} from '../../../../environments/environment';
-import {HttpClient} from '@angular/common/http';
-import {Observable} from 'rxjs';
+import { environment } from '../../../../environments/environment';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
 import {
   EventResponse,
   EventsListResponse,
@@ -12,7 +12,8 @@ import {
   InviteUserResponse,
   EventStatus,
   ResponseStatus,
-  UpdateStatusResponse
+  UpdateStatusResponse,
+  SearchFilters
 } from '../../../core/models/event.model';
 
 @Injectable({
@@ -75,22 +76,35 @@ export class EventApiService {
     return this.http.post<InviteUserResponse>(`${this.apiUrl}/${eventId}/invite`, inviteData);
   }
 
-  // Search events
-  searchEvents(filters: any): Observable<EventsListResponse> {
-    // Build query params from filters object, only including defined values
-    const params: any = {};
-    if (filters.keyword) params.keyword = filters.keyword;
-    if (filters.startDate) params.startDate = filters.startDate;
-    if (filters.endDate) params.endDate = filters.endDate;
-    if (filters.status) params.status = filters.status;
-    if (filters.role) params.role = filters.role;
-    if (filters.userId) params.userId = filters.userId;
-    if (filters.limit) params.limit = filters.limit;
-    if (filters.offset) params.offset = filters.offset;
+  // Search events with filters
+  searchEvents(filters: SearchFilters): Observable<any> {
+    let params = new HttpParams();
 
-    return this.http.get<EventsListResponse>(`${this.apiUrl}/search`, {
-      params
-    });
+    // Add keyword
+    if (filters.keyword && filters.keyword.trim()) {
+      params = params.set('keyword', filters.keyword.trim());
+    }
+
+    // Add date range
+    if (filters.startDate) {
+      params = params.set('startDate', filters.startDate);
+    }
+    if (filters.endDate) {
+      params = params.set('endDate', filters.endDate);
+    }
+
+    // Add status
+    if (filters.status) {
+      params = params.set('status', filters.status);
+    }
+
+    // Add role
+    if (filters.role) {
+      params = params.set('role', filters.role);
+    }
+
+    return this.http.get<any>(`${this.apiUrl}/search`, { params });
   }
+
 
 }

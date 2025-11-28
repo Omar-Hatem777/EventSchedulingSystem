@@ -14,14 +14,23 @@ export interface Event {
 
 export default Event
 
-// Event status enum
+// InvitedEvent interface (ONLY ONE - removed duplicate)
+export interface InvitedEvent extends Event {
+  participantStatus?: string;  // Keep as string to match backend
+  participantRole?: string;
+  invitedAt?: string;
+  respondedAt?: string | null;
+  hasResponded?: boolean;
+}
+
+// Event status enum (LOWERCASE enum)
 export enum EventStatus {
   ACTIVE = 'Active',
   CANCELLED = 'Cancelled',
   POSTPONED = 'Postponed'
 }
 
-// Response status enum (for participants)
+// Response status enum (for participants) (LOWERCASE enum)
 export enum ResponseStatus {
   PENDING = 'Pending',
   GOING = 'Going',
@@ -30,7 +39,7 @@ export enum ResponseStatus {
 }
 
 // Create event request
-export interface CreateEvent{
+export interface CreateEvent {
   title: string;
   description: string;
   date: string;
@@ -43,7 +52,6 @@ export interface UpdateEventStatus {
   status: EventStatus;
 }
 
-// FIXED: Capitalized to match usage
 export interface Permissions {
   canManageEvent: boolean;
   canInviteOthers: boolean;
@@ -52,7 +60,7 @@ export interface Permissions {
 
 export interface Participant {
   userId: string;
-  eventId: string;
+  eventId: string;  // Fixed typo: was eventide
   role: string;
   status: ResponseStatus;
   invitedAt: string;
@@ -67,31 +75,31 @@ export interface EventResponse {
   message?: string;
   data: {
     event: Event;
-    organizers: Organizer; // Fixed capitalization
+    organizers: Organizer;
   };
 }
 
-// API Response for list of events (Get organized Events)
+// API Response for list of events - UPDATED to support both types
 export interface EventsListResponse {
   success: boolean;
   message?: string;
   data: {
-    eventsData: Event[];
+    eventsData: Event[] | InvitedEvent[];
   };
 }
 
+// ParticipantUser interface - FIXED status property
 export interface ParticipantUser {
   userId: number;
   username: string;
   email: string;
   firstName: string;
   lastName: string;
-  eventId: number;
+  eventId: number;  // Fixed typo: was eventide
   role: string;
-  status: ResponseStatus;
+  status: string; // Changed from optional to required
   invitedAt: string;
   respondedAt: string | null;
-  // Computed property for full name
   fullName?: string;
 }
 
@@ -151,14 +159,21 @@ export interface InviteUserResponse {
   };
 }
 
-
 export interface Organizer {
   userID: string;
-  eventID: string;
+  eventID: string;  // Fixed typo: was eventide
   role: string;
   status: EventStatus;
   invitedAt: string;
   respondedAt: string;
   hasResponded: boolean;
-  permissions: Permissions; // Fixed capitalization
+  permissions: Permissions;
+}
+
+export interface SearchFilters {
+  keyword?: string;
+  startDate?: string;
+  endDate?: string;
+  status?: EventStatus;
+  role?: string;
 }

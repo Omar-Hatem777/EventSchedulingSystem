@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { EventCardComponent } from '../event-card/event-card.component';
 import { EventService } from '../../services/event.service';
-import Event, { ParticipantUser, EventStatus } from '../../../../core/models/event.model';
+import Event, { ParticipantUser, EventStatus, SearchFilters } from '../../../../core/models/event.model';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
 
 @Component({
@@ -18,20 +18,16 @@ export class EventListComponent implements OnInit {
   allEvents: Event[] = [];
   filteredEvents: Event[] = [];
   searchQuery = '';
-  searchFilterType: string = 'keyword'; // Default filter type
   loading = false;
 
-  // Available filter types
-  filterTypes = [
-    { value: 'keyword', label: 'Keyword' },
-    { value: 'startDate', label: 'Start Date' },
-    { value: 'endDate', label: 'End Date' },
-    { value: 'status', label: 'Status' },
-    { value: 'role', label: 'Role' },
-    { value: 'userId', label: 'User ID' },
-    { value: 'limit', label: 'Limit' },
-    { value: 'offset', label: 'Offset' }
-  ];
+  // Search filters
+  searchFilters = {
+    keyword: '',
+    startDate: '',
+    endDate: '',
+    status: '',
+    role: ''
+  };
 
   // Participants
   showParticipantsModal = false;
@@ -95,41 +91,51 @@ export class EventListComponent implements OnInit {
 
   // Search
   onSearchChange(): void {
-    const term = this.searchQuery.trim();
+    this.searchFilters.keyword = this.searchQuery.trim();
+    this.performSearch();
+  }
 
-    if (!term) {
-      // If search is empty, show all events
+  // Perform search with all filters
+  performSearch(): void {
+    // Check if any filter is set
+    const hasFilters = 
+      this.searchFilters.keyword.trim() ||
+      this.searchFilters.startDate ||
+      this.searchFilters.endDate ||
+      this.searchFilters.status ||
+      this.searchFilters.role;
+
+    // If no filters, show all events
+    if (!hasFilters) {
       this.filteredEvents = [...this.allEvents];
       return;
     }
 
-    // Build filters object based on selected filter type
-    const filters: any = {};
-    
-    // Set the selected filter value
-    if (this.searchFilterType === 'keyword') {
-      // Only search if keyword query is at least 2 characters
-      if (term.length < 2) {
-        return;
-      }
-      filters.keyword = term;
-    } else if (this.searchFilterType === 'startDate') {
-      filters.startDate = term;
-    } else if (this.searchFilterType === 'endDate') {
-      filters.endDate = term;
-    } else if (this.searchFilterType === 'status') {
-      filters.status = term;
-    } else if (this.searchFilterType === 'role') {
-      filters.role = term;
-    } else if (this.searchFilterType === 'userId') {
-      filters.userId = term;
-    } else if (this.searchFilterType === 'limit') {
-      filters.limit = parseInt(term) || 20;
-    } else if (this.searchFilterType === 'offset') {
-      filters.offset = parseInt(term) || 0;
+    // Only search if keyword is at least 2 characters (if provided)
+    if (this.searchFilters.keyword && this.searchFilters.keyword.length < 2) {
+      return;
     }
 
     this.loading = true;
+    
+    // Build search filters object
+    const filters: SearchFilters = {};
+    if (this.searchFilters.keyword.trim()) {
+      filters.keyword = this.searchFilters.keyword.trim();
+    }
+    if (this.searchFilters.startDate) {
+      filters.startDate = this.searchFilters.startDate;
+    }
+    if (this.searchFilters.endDate) {
+      filters.endDate = this.searchFilters.endDate;
+    }
+    if (this.searchFilters.status) {
+      filters.status = this.searchFilters.status as EventStatus;
+    }
+    if (this.searchFilters.role) {
+      filters.role = this.searchFilters.role;
+    }
+
     this.eventService.searchEvents(filters).subscribe({
       next: (response) => {
         console.log('Search response:', response);
@@ -139,8 +145,6 @@ export class EventListComponent implements OnInit {
             this.filteredEvents = response.data;
           } else if (response.data.eventsData) {
             this.filteredEvents = response.data.eventsData;
-          } else if (response.data.events) {
-            this.filteredEvents = response.data.events;
           } else {
             this.filteredEvents = [];
           }
@@ -161,23 +165,22 @@ export class EventListComponent implements OnInit {
     });
   }
 
-  // Update placeholder based on filter type
-  getSearchPlaceholder(): string {
-    const filterType = this.filterTypes.find(ft => ft.value === this.searchFilterType);
-    if (filterType) {
-      return `Search by ${filterType.label}...`;
-    }
-    return 'Search events...';
+  // Filter change handlers
+  onFilterChange(): void {
+    this.performSearch();
   }
 
-  // Update input type based on filter type
-  getInputType(): string {
-    if (this.searchFilterType === 'startDate' || this.searchFilterType === 'endDate') {
-      return 'date';
-    } else if (this.searchFilterType === 'userId' || this.searchFilterType === 'limit' || this.searchFilterType === 'offset') {
-      return 'number';
-    }
-    return 'text';
+  // Clear all filters
+  clearFilters(): void {
+    this.searchQuery = '';
+    this.searchFilters = {
+      keyword: '',
+      startDate: '',
+      endDate: '',
+      status: '',
+      role: ''
+    };
+    this.filteredEvents = [...this.allEvents];
   }
 
   // Delete
@@ -363,7 +366,13 @@ export class EventListComponent implements OnInit {
   // Refresh events
   refreshEvents(): void {
     this.searchQuery = '';
-    this.searchFilterType = 'keyword';
+    this.searchFilters = {
+      keyword: '',
+      startDate: '',
+      endDate: '',
+      status: '',
+      role: ''
+    };
     this.loadEvents();
   }
 

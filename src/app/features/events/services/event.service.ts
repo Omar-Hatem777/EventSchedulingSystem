@@ -8,7 +8,9 @@ import Event, {
   InviteUserResponse,
   ResponseStatus,
   UpdateStatusResponse,
-  EventsListResponse
+  EventsListResponse,
+  InvitedEvent,
+  SearchFilters
 } from '../../../core/models/event.model';
 
 @Injectable({
@@ -224,7 +226,9 @@ export class EventService {
     return this.eventApiService.getInvitedEvents().pipe(
       tap(response => {
         if (response.success) {
-          this.invitedEventsSubject.next(response.data.eventsData);
+          // Type assertion to handle the union type
+          const invitedEvents = response.data.eventsData as any[];
+          this.invitedEventsSubject.next(invitedEvents as Event[]);
         }
         this.loadingSubject.next(false);
       }),
@@ -289,18 +293,17 @@ export class EventService {
     this.getAllOrganizedEvents().subscribe();
   }
 
-  // Search events
-  searchEvents(filters: any): Observable<EventsListResponse> {
+  // Search events with filters
+  searchEvents(filters: SearchFilters): Observable<any> {
     console.log('Searching events with filters:', filters);
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
+
     return this.eventApiService.searchEvents(filters).pipe(
       tap(response => {
         if (response.success) {
-          console.log('Search results loaded:', response.data); // Changed from response.data.eventsData
-          // You need to store these results somewhere!
-          // Assuming you have a BehaviorSubject for events:
-          // this.eventsSubject.next(response.data);
+          console.log('Search results loaded:', response.data);
+          console.log('Pagination:', response.pagination);
         }
         this.loadingSubject.next(false);
       }),
