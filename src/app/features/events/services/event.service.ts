@@ -6,6 +6,9 @@ import Event, {
   EventStatus,
   InviteUserRequest,
   InviteUserResponse,
+  ResponseStatus,
+  UpdateStatusResponse,
+  EventsListResponse
 } from '../../../core/models/event.model';
 
 @Injectable({
@@ -15,6 +18,9 @@ export class EventService {
   // State management for organized events
   private organizedEventsSubject = new BehaviorSubject<Event[]>([]);
   public organizedEvents$ = this.organizedEventsSubject.asObservable();
+
+  private invitedEventsSubject = new BehaviorSubject<Event[]>([]);
+  public invitedEvents$ = this.invitedEventsSubject.asObservable();
 
   private selectedEventSubject = new BehaviorSubject<Event | null>(null);
   public selectedEvent$ = this.selectedEventSubject.asObservable();
@@ -99,7 +105,7 @@ export class EventService {
   }
 
   // Update event status
-  updateEventStatus(eventId: string, newStatus: EventStatus): Observable<any> {
+  updateEventStatus(eventId: string, newStatus: EventStatus): Observable<UpdateStatusResponse> {
     console.log('Updating event status:', eventId, newStatus);
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
@@ -107,7 +113,7 @@ export class EventService {
     const updateData: UpdateEventStatus = { status: newStatus };
 
     return this.eventApiService.updateEventStatus(eventId, updateData.status).pipe(
-      tap((response:any) => {
+      tap((response) => {
         if (response.success) {
           console.log('Event status updated:', response.data.event);
 
@@ -203,6 +209,50 @@ export class EventService {
       catchError(error => {
         console.error('Error inviting user:', error);
         this.errorSubject.next(error.message || 'Failed to invite user');
+        this.loadingSubject.next(false);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // Get invited events for current user
+  getInvitedEvents(): Observable<EventsListResponse> {
+    console.log('Loading invited events...');
+    this.loadingSubject.next(true);
+    this.errorSubject.next(null);
+
+    return this.eventApiService.getInvitedEvents().pipe(
+      tap(response => {
+        if (response.success) {
+          this.invitedEventsSubject.next(response.data.eventsData);
+        }
+        this.loadingSubject.next(false);
+      }),
+      catchError(error => {
+        console.error('Error loading invited events:', error);
+        this.errorSubject.next(error.message || 'Failed to load invited events');
+        this.loadingSubject.next(false);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  // Respond to an invitation
+  respondToInvitation(eventId: string, status: ResponseStatus): Observable<UpdateStatusResponse> {
+    console.log('Responding to invitation:', eventId, status);
+    this.loadingSubject.next(true);
+    this.errorSubject.next(null);
+
+    return this.eventApiService.respondToInvitation(eventId, status).pipe(
+      tap(response => {
+        if (response.success) {
+          console.log('Invitation response saved');
+        }
+        this.loadingSubject.next(false);
+      }),
+      catchError(error => {
+        console.error('Error responding to invitation:', error);
+        this.errorSubject.next(error.message || 'Failed to submit response');
         this.loadingSubject.next(false);
         return throwError(() => error);
       })
