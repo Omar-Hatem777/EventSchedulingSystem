@@ -76,9 +76,20 @@ export class EventApiService {
   }
 
   // Search events
-  searchEvents(keyword: string): Observable<EventsListResponse> {
+  searchEvents(filters: any): Observable<EventsListResponse> {
+    // Build query params from filters object, only including defined values
+    const params: any = {};
+    if (filters.keyword) params.keyword = filters.keyword;
+    if (filters.startDate) params.startDate = filters.startDate;
+    if (filters.endDate) params.endDate = filters.endDate;
+    if (filters.status) params.status = filters.status;
+    if (filters.role) params.role = filters.role;
+    if (filters.userId) params.userId = filters.userId;
+    if (filters.limit) params.limit = filters.limit;
+    if (filters.offset) params.offset = filters.offset;
+
     return this.http.get<EventsListResponse>(`${this.apiUrl}/search`, {
-      params: { keyword }
+      params
     });
   }
 

@@ -16,7 +16,20 @@ export class InvitedEventsComponent implements OnInit {
   invitedEvents: Event[] = [];
   filteredEvents: Event[] = [];
   searchQuery = '';
+  searchFilterType: string = 'keyword'; // Default filter type
   loading = false;
+
+  // Available filter types
+  filterTypes = [
+    { value: 'keyword', label: 'Keyword' },
+    { value: 'startDate', label: 'Start Date' },
+    { value: 'endDate', label: 'End Date' },
+    { value: 'status', label: 'Status' },
+    { value: 'role', label: 'Role' },
+    { value: 'userId', label: 'User ID' },
+    { value: 'limit', label: 'Limit' },
+    { value: 'offset', label: 'Offset' }
+  ];
   error: string | null = null;
   successMessage: string | null = null;
   respondingEventId: string | null = null;
@@ -43,6 +56,8 @@ export class InvitedEventsComponent implements OnInit {
   fetchInvitedEvents(): void {
     this.loading = true;
     this.error = null;
+    this.searchQuery = '';
+    this.searchFilterType = 'keyword';
 
     this.eventService.getInvitedEvents().subscribe({
       next: (response) => {
@@ -67,11 +82,46 @@ export class InvitedEventsComponent implements OnInit {
       return;
     }
 
+    // Build filters object based on selected filter type
+    const filters: any = {};
+    
+    // Set the selected filter value
+    if (this.searchFilterType === 'keyword') {
+      // Only search if keyword query is at least 2 characters
+      if (term.length < 2) {
+        return;
+      }
+      filters.keyword = term;
+    } else if (this.searchFilterType === 'startDate') {
+      filters.startDate = term;
+    } else if (this.searchFilterType === 'endDate') {
+      filters.endDate = term;
+    } else if (this.searchFilterType === 'status') {
+      filters.status = term;
+    } else if (this.searchFilterType === 'role') {
+      filters.role = term;
+    } else if (this.searchFilterType === 'userId') {
+      filters.userId = term;
+    } else if (this.searchFilterType === 'limit') {
+      filters.limit = parseInt(term) || 20;
+    } else if (this.searchFilterType === 'offset') {
+      filters.offset = parseInt(term) || 0;
+    }
+
     this.loading = true;
-    this.eventService.searchEvents(term).subscribe({
+    this.eventService.searchEvents(filters).subscribe({
       next: (response) => {
         if (response.success) {
-          this.filteredEvents = response.data.eventsData;
+          // Handle different response structures
+          if (Array.isArray(response.data)) {
+            this.filteredEvents = response.data;
+          } else if (response.data.eventsData) {
+            this.filteredEvents = response.data.eventsData;
+          } else if (response.data.events) {
+            this.filteredEvents = response.data.events;
+          } else {
+            this.filteredEvents = [];
+          }
         } else {
           this.filteredEvents = [];
         }
@@ -83,6 +133,25 @@ export class InvitedEventsComponent implements OnInit {
         this.error = 'Failed to search events';
       }
     });
+  }
+
+  // Update placeholder based on filter type
+  getSearchPlaceholder(): string {
+    const filterType = this.filterTypes.find(ft => ft.value === this.searchFilterType);
+    if (filterType) {
+      return `Search by ${filterType.label}...`;
+    }
+    return 'Search events...';
+  }
+
+  // Update input type based on filter type
+  getInputType(): string {
+    if (this.searchFilterType === 'startDate' || this.searchFilterType === 'endDate') {
+      return 'date';
+    } else if (this.searchFilterType === 'userId' || this.searchFilterType === 'limit' || this.searchFilterType === 'offset') {
+      return 'number';
+    }
+    return 'text';
   }
 
   onRespond(eventId: string, status: ResponseStatus): void {

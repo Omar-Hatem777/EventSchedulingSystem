@@ -290,11 +290,11 @@ export class EventService {
   }
 
   // Search events
-  searchEvents(keyword: string): Observable<EventsListResponse> {
-    console.log('Searching events with keyword:', keyword);
+  searchEvents(filters: any): Observable<EventsListResponse> {
+    console.log('Searching events with filters:', filters);
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
-    return this.eventApiService.searchEvents(keyword).pipe(
+    return this.eventApiService.searchEvents(filters).pipe(
       tap(response => {
         if (response.success) {
           console.log('Search results loaded:', response.data); // Changed from response.data.eventsData

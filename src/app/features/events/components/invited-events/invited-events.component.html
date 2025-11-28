@@ -29,13 +29,24 @@
 
   <!-- Search input -->
   <div class="search-section">
-    <input
-      type="text"
-      class="search-input"
-      placeholder="Search events..."
-      [(ngModel)]="searchQuery"
-      (input)="onSearchChange()"
-    />
+    <div class="search-bar">
+      <select 
+        class="search-filter-dropdown"
+        [(ngModel)]="searchFilterType"
+        (change)="searchQuery = ''; onSearchChange()"
+      >
+        <option *ngFor="let filterType of filterTypes" [value]="filterType.value">
+          {{ filterType.label }}
+        </option>
+      </select>
+      <input
+        [type]="getInputType()"
+        class="search-input"
+        [placeholder]="getSearchPlaceholder()"
+        [(ngModel)]="searchQuery"
+        (input)="onSearchChange()"
+      />
+    </div>
   </div>
 
   <div *ngIf="loading" class="loading-state">
