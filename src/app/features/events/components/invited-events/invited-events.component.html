@@ -27,13 +27,24 @@
     {{ error }}
   </div>
 
+  <!-- Search input -->
+  <div class="search-section">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search events..."
+      [(ngModel)]="searchQuery"
+      (input)="onSearchChange()"
+    />
+  </div>
+
   <div *ngIf="loading" class="loading-state">
     <div class="spinner"></div>
     <p>Loading your invitations...</p>
   </div>
 
-  <div *ngIf="!loading && invitedEvents.length > 0" class="invited-grid">
-    <article class="invited-card" *ngFor="let event of invitedEvents">
+  <div *ngIf="!loading && filteredEvents.length > 0" class="invited-grid">
+    <article class="invited-card" *ngFor="let event of filteredEvents">
       <header class="card-header">
         <div>
           <h2>{{ event.title }}</h2>
@@ -103,10 +114,10 @@
     </article>
   </div>
 
-  <div *ngIf="!loading && invitedEvents.length === 0" class="empty-state">
+  <div *ngIf="!loading && filteredEvents.length === 0" class="empty-state">
     <i class="fa-solid fa-envelope-circle-check"></i>
-    <h3>No invitations yet</h3>
-    <p>When someone invites you to an event, it will show up here.</p>
+    <h3>{{ searchQuery ? 'No events found' : 'No invitations yet' }}</h3>
+    <p>{{ searchQuery ? 'Try a different search term.' : 'When someone invites you to an event, it will show up here.' }}</p>
   </div>
 </section>
 

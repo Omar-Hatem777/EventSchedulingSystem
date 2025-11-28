@@ -548,13 +548,39 @@
   letter-spacing: 0.5px;
 }
 
-.badge-active {
+.badge-going {
   background: #d4edda;
   color: #155724;
 }
 
-.badge-inactive {
+.badge-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.badge-maybe {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.badge-notgoing {
   background: #f8d7da;
+  color: #721c24;
+}
+
+.status-going {
+  color: #155724;
+}
+
+.status-pending {
+  color: #856404;
+}
+
+.status-maybe {
+  color: #0c5460;
+}
+
+.status-notgoing {
   color: #721c24;
 }
 

@@ -73,13 +73,30 @@ export class EventListComponent implements OnInit {
 
   // Search
   onSearchChange(): void {
-    const term = this.searchQuery.toLowerCase();
-    this.filteredEvents = this.allEvents.filter(e =>
-      e.title.toLowerCase().includes(term) ||
-      e.location.toLowerCase().includes(term) ||
-      e.description.toLowerCase().includes(term) ||
-      e.status.toLowerCase().includes(term)
-    );
+    const term = this.searchQuery.trim();
+    
+    if (!term) {
+      // If search is empty, show all events
+      this.loadEvents();
+      return;
+    }
+
+    this.loading = true;
+    this.eventService.searchEvents(term).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.filteredEvents = response.data.eventsData;
+        } else {
+          this.filteredEvents = [];
+        }
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.filteredEvents = [];
+        this.showToastMessage('Failed to search events', 'error');
+      }
+    });
   }
 
   // Delete
@@ -117,7 +134,11 @@ export class EventListComponent implements OnInit {
     this.eventService.getEventParticipants(event.id).subscribe({
       next: (res) => {
         console.log('Participants response:', res);
-        this.participants = res.data.participantsData;
+        // Map participants to include fullName computed from firstName and lastName
+        this.participants = res.data.participantsData.map((p: ParticipantUser) => ({
+          ...p,
+          fullName: `${p.firstName} ${p.lastName}`.trim()
+        }));
         console.log('Processed participants:', this.participants);
         this.loadingParticipants = false;
       },

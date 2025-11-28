@@ -81,16 +81,18 @@ export interface EventsListResponse {
 }
 
 export interface ParticipantUser {
-  id: number;
+  userId: number;
   username: string;
   email: string;
   firstName: string;
   lastName: string;
-  fullName: string;
-  isActive: boolean;
-  createdAt: string;
-  lastLogin: string | null;
-  role?: string;
+  eventId: number;
+  role: string;
+  status: ResponseStatus;
+  invitedAt: string;
+  respondedAt: string | null;
+  // Computed property for full name
+  fullName?: string;
 }
 
 export interface ParticipantsResponse {

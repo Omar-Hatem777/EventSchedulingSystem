@@ -14,6 +14,8 @@ import { EventService } from '../../services/event.service';
 })
 export class InvitedEventsComponent implements OnInit {
   invitedEvents: Event[] = [];
+  filteredEvents: Event[] = [];
+  searchQuery = '';
   loading = false;
   error: string | null = null;
   successMessage: string | null = null;
@@ -45,11 +47,40 @@ export class InvitedEventsComponent implements OnInit {
     this.eventService.getInvitedEvents().subscribe({
       next: (response) => {
         this.invitedEvents = response.data.eventsData;
+        this.filteredEvents = [...this.invitedEvents];
         this.loading = false;
       },
       error: () => {
         this.error = 'Failed to load invited events. Please try again.';
         this.loading = false;
+      }
+    });
+  }
+
+  // Search
+  onSearchChange(): void {
+    const term = this.searchQuery.trim();
+    
+    if (!term) {
+      // If search is empty, show all events
+      this.filteredEvents = [...this.invitedEvents];
+      return;
+    }
+
+    this.loading = true;
+    this.eventService.searchEvents(term).subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.filteredEvents = response.data.eventsData;
+        } else {
+          this.filteredEvents = [];
+        }
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.filteredEvents = [];
+        this.error = 'Failed to search events';
       }
     });
   }

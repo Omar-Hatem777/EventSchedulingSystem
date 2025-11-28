@@ -75,5 +75,11 @@ export class EventApiService {
     return this.http.post<InviteUserResponse>(`${this.apiUrl}/${eventId}/invite`, inviteData);
   }
 
+  // Search events
+  searchEvents(keyword: string): Observable<EventsListResponse> {
+    return this.http.get<EventsListResponse>(`${this.apiUrl}/search`, {
+      params: { keyword }
+    });
+  }
 
 }

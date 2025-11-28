@@ -288,4 +288,26 @@ export class EventService {
   refreshOrganizedEvents(): void {
     this.getAllOrganizedEvents().subscribe();
   }
+
+  // Search events
+  searchEvents(keyword: string): Observable<EventsListResponse> {
+    console.log('Searching events with keyword:', keyword);
+    this.loadingSubject.next(true);
+    this.errorSubject.next(null);
+
+    return this.eventApiService.searchEvents(keyword).pipe(
+      tap(response => {
+        if (response.success) {
+          console.log('Search results loaded:', response.data.eventsData);
+        }
+        this.loadingSubject.next(false);
+      }),
+      catchError(error => {
+        console.error('Error searching events:', error);
+        this.errorSubject.next(error.message || 'Failed to search events');
+        this.loadingSubject.next(false);
+        return throwError(() => error);
+      })
+    );
+  }
 }

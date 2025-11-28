@@ -84,14 +84,14 @@
             <i class="fa-solid fa-user"></i>
           </div>
           <div class="participant-info">
-            <h4 class="participant-name">{{ p.fullName }}</h4>
+            <h4 class="participant-name">{{ p.fullName || (p.firstName + ' ' + p.lastName) }}</h4>
             <p class="participant-role" *ngIf="p.role">
               <i class="fa-solid fa-user-tag"></i> {{ p.role }}
             </p>
           </div>
-          <div class="participant-status" [ngClass]="p.isActive ? 'status-active' : 'status-inactive'">
-            <span class="status-badge" [ngClass]="p.isActive ? 'badge-active' : 'badge-inactive'">
-              {{ p.isActive ? 'Active' : 'Inactive' }}
+          <div class="participant-status" [ngClass]="'status-' + (p.status?.toLowerCase() || 'pending')">
+            <span class="status-badge" [ngClass]="'badge-' + (p.status?.toLowerCase() || 'pending')">
+              {{ p.status || 'Pending' }}
             </span>
           </div>
         </div>
