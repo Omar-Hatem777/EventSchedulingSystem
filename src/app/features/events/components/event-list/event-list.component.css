@@ -941,27 +941,6 @@ select.form-control {
   line-height: 1.4;
 }
 
-.toast-close {
-  background: none;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 0.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s ease;
-  flex-shrink: 0;
-}
-
-.toast-close:hover {
-  color: #2d3748;
-}
-
-.toast-close i {
-  font-size: 0.875rem;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .event-list-container {

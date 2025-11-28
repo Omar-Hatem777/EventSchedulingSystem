@@ -23,9 +23,10 @@ export enum EventStatus {
 
 // Response status enum (for participants)
 export enum ResponseStatus {
+  PENDING = 'Pending',
   GOING = 'Going',
-  NOT_GOING = 'Not Going',
-  PENDING = 'Pending'
+  MAYBE = 'Maybe',
+  NOT_GOING = 'NotGoing',
 }
 
 // Create event request

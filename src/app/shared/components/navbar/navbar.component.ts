@@ -1,51 +1,46 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import {AuthService} from '../../../core/services/auth.service';
-import {EventListComponent} from '../../../features/events/components/event-list/event-list.component';
+import { RouterModule, Router, NavigationEnd } from '@angular/router';
+import { filter, Subscription } from 'rxjs';
+import { AuthService } from '../../../core/services/auth.service';
 
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule,RouterModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css'
 })
-export class NavbarComponent {
-  activeTab: string = 'organized';
-  notificationsCount: number = 3;
-  showNotifications: boolean = false;
+export class NavbarComponent implements OnInit, OnDestroy {
+  activeTab: 'organized' | 'invited' = 'organized';
+  private routerSubscription?: Subscription;
 
   @Output() createEventClick = new EventEmitter<void>();
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private router: Router) {}
+
+  ngOnInit(): void {
+    this.setActiveTabFromUrl(this.router.url);
+    this.routerSubscription = this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe((event: NavigationEnd) => this.setActiveTabFromUrl(event.urlAfterRedirects));
+  }
+
+  ngOnDestroy(): void {
+    this.routerSubscription?.unsubscribe();
+  }
 
   onCreateEventClick(): void {
     this.createEventClick.emit();
   }
 
-  notifications = [
-    { id: 1, message: 'New event registration received', time: '5 min ago', read: false },
-    { id: 2, message: 'Event "Summer Festival" starts tomorrow', time: '1 hour ago', read: false },
-    { id: 3, message: 'Payment confirmed for "Tech Conference"', time: '2 hours ago', read: true }
-  ];
-
-  setActiveTab(tab: string): void {
+  setActiveTab(tab: 'organized' | 'invited'): void {
     this.activeTab = tab;
   }
 
-  toggleNotifications(): void {
-    this.showNotifications = !this.showNotifications;
-  }
-
-  markAsRead(notification: any): void {
-    notification.read = true;
-    this.updateNotificationCount();
-  }
-
-  updateNotificationCount(): void {
-    this.notificationsCount = this.notifications.filter(n => !n.read).length;
+  private setActiveTabFromUrl(url: string): void {
+    this.activeTab = url.includes('/events/invited') ? 'invited' : 'organized';
   }
 
   logout(): void {

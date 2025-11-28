@@ -7,7 +7,12 @@ import {
   EventsListResponse,
   CreateEvent,
   ParticipantsResponse,
-  UpdateEventStatus, InviteUserRequest, InviteUserResponse, EventStatus
+  UpdateEventStatus,
+  InviteUserRequest,
+  InviteUserResponse,
+  EventStatus,
+  ResponseStatus,
+  UpdateStatusResponse
 } from '../../../core/models/event.model';
 
 @Injectable({
@@ -22,6 +27,11 @@ export class EventApiService {
   // Get all events organized by current user
   getOrganizedEvents(): Observable<EventsListResponse> {
     return this.http.get<EventsListResponse>(`${this.apiUrl}/organizer`);
+  }
+
+  // Get invited events for current user
+  getInvitedEvents(): Observable<EventsListResponse> {
+    return this.http.get<EventsListResponse>(`${this.apiUrl}/invited`);
   }
 
   // Get single event by ID
@@ -40,8 +50,13 @@ export class EventApiService {
   // }
 
   // Update event status if user is going, ....
-  updateEventStatus(eventId: string, status: EventStatus) {
-    return this.http.patch(`${this.apiUrl}/${eventId}/response`, { status });
+  updateEventStatus(eventId: string, status: EventStatus): Observable<UpdateStatusResponse> {
+    return this.http.patch<UpdateStatusResponse>(`${this.apiUrl}/${eventId}/response`, { status });
+  }
+
+  // Respond to an invitation
+  respondToInvitation(eventId: string, status: ResponseStatus): Observable<UpdateStatusResponse> {
+    return this.http.put<UpdateStatusResponse>(`${this.apiUrl}/${eventId}/response`, { status });
   }
 
 

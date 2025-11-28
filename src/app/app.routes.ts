@@ -5,8 +5,7 @@ import { EventListComponent } from './features/events/components/event-list/even
 import { authGuard } from './core/guards/auth.guard';
 import { noAuthGuard } from './core/guards/no-auth.guard';
 import { NotFoundComponent } from './shared/components/not-found/not-found.component';
-import {EventFormComponent} from './features/events/components/event-form/event-form.component';
-import {EventCardComponent} from './features/events/components/event-card/event-card.component';
+import { InvitedEventsComponent } from './features/events/components/invited-events/invited-events.component';
 
 
 export const routes: Routes = [
@@ -14,7 +13,7 @@ export const routes: Routes = [
   { path: 'login', component: LoginComponent, canActivate: [noAuthGuard] },
   { path: 'signup', component: SignupComponent, canActivate: [noAuthGuard] },
   { path: 'events', component: EventListComponent, canActivate: [authGuard] },
-  { path: 'event-form', component: EventFormComponent, canActivate: [authGuard] },
+  { path: 'events/invited', component: InvitedEventsComponent, canActivate: [authGuard] },
   { path: '**', component: NotFoundComponent }
 ];
 
