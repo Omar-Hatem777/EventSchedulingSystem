@@ -294,11 +294,13 @@ export class EventService {
     console.log('Searching events with keyword:', keyword);
     this.loadingSubject.next(true);
     this.errorSubject.next(null);
-
     return this.eventApiService.searchEvents(keyword).pipe(
       tap(response => {
         if (response.success) {
-          console.log('Search results loaded:', response.data.eventsData);
+          console.log('Search results loaded:', response.data); // Changed from response.data.eventsData
+          // You need to store these results somewhere!
+          // Assuming you have a BehaviorSubject for events:
+          // this.eventsSubject.next(response.data);
         }
         this.loadingSubject.next(false);
       }),

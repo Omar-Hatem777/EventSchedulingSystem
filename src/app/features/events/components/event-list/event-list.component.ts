@@ -50,7 +50,7 @@ export class EventListComponent implements OnInit {
   toastMessage = '';
   toastType: 'success' | 'error' | 'info' = 'info';
 
-  constructor(private eventService: EventService, private router: Router) {}
+  constructor(private eventService: EventService, private router: Router) { }
 
   ngOnInit(): void {
     this.loadEvents();
@@ -60,11 +60,20 @@ export class EventListComponent implements OnInit {
     this.loading = true;
     this.eventService.getAllOrganizedEvents().subscribe({
       next: (response) => {
-        this.allEvents = response.data.eventsData;
+        console.log('Load events response:', response);
+        // Fix: Check if response.data is already the array or if it has eventsData
+        if (response.data.eventsData) {
+          this.allEvents = response.data.eventsData;
+        } else if (Array.isArray(response.data)) {
+          this.allEvents = response.data;
+        } else {
+          this.allEvents = [];
+        }
         this.filteredEvents = [...this.allEvents];
         this.loading = false;
       },
-      error: () => {
+      error: (error) => {
+        console.error('Error loading events:', error);
         this.loading = false;
         this.showToastMessage('Failed to load events', 'error');
       }
@@ -74,27 +83,44 @@ export class EventListComponent implements OnInit {
   // Search
   onSearchChange(): void {
     const term = this.searchQuery.trim();
-    
+
     if (!term) {
       // If search is empty, show all events
-      this.loadEvents();
+      this.filteredEvents = [...this.allEvents];
+      return;
+    }
+
+    // Only search if query is at least 2 characters
+    if (term.length < 2) {
       return;
     }
 
     this.loading = true;
     this.eventService.searchEvents(term).subscribe({
       next: (response) => {
+        console.log('Search response:', response);
         if (response.success) {
-          this.filteredEvents = response.data.eventsData;
+          // Fix: Backend returns response.data directly as array
+          if (Array.isArray(response.data)) {
+            this.filteredEvents = response.data;
+          } else if (response.data.eventsData) {
+            this.filteredEvents = response.data.eventsData;
+          } else {
+            this.filteredEvents = [];
+          }
         } else {
           this.filteredEvents = [];
         }
         this.loading = false;
       },
-      error: () => {
+      error: (error) => {
+        console.error('Search error:', error);
         this.loading = false;
-        this.filteredEvents = [];
-        this.showToastMessage('Failed to search events', 'error');
+        // Don't clear results on error, keep showing current events
+        // Only show error toast if it's not a validation error (400)
+        if (error.status !== 400) {
+          this.showToastMessage('Failed to search events', 'error');
+        }
       }
     });
   }
@@ -121,6 +147,10 @@ export class EventListComponent implements OnInit {
       next: () => {
         this.allEvents = this.allEvents.map(e => e.id === data.eventId ? { ...e, status: data.status } : e);
         this.filteredEvents = this.filteredEvents.map(e => e.id === data.eventId ? { ...e, status: data.status } : e);
+        this.showToastMessage('Event status updated', 'success');
+      },
+      error: () => {
+        this.showToastMessage('Failed to update status', 'error');
       }
     });
   }
@@ -134,8 +164,16 @@ export class EventListComponent implements OnInit {
     this.eventService.getEventParticipants(event.id).subscribe({
       next: (res) => {
         console.log('Participants response:', res);
+        // Handle different response structures
+        let participantsData = [];
+        if (res.data.participantsData) {
+          participantsData = res.data.participantsData;
+        } else if (Array.isArray(res.data)) {
+          participantsData = res.data;
+        }
+
         // Map participants to include fullName computed from firstName and lastName
-        this.participants = res.data.participantsData.map((p: ParticipantUser) => ({
+        this.participants = participantsData.map((p: ParticipantUser) => ({
           ...p,
           fullName: `${p.firstName} ${p.lastName}`.trim()
         }));
@@ -145,6 +183,7 @@ export class EventListComponent implements OnInit {
       error: (error) => {
         console.error('Error loading participants:', error);
         this.loadingParticipants = false;
+        this.participants = [];
         this.showToastMessage('Failed to load participants', 'error');
       }
     });
@@ -196,7 +235,7 @@ export class EventListComponent implements OnInit {
 
   // Create Event
   openCreateEventModal(): void {
-    console.log('FAB clicked - opening create event modal');
+    console.log('Opening create event modal');
     this.newEvent = {
       title: '',
       description: '',
@@ -224,14 +263,14 @@ export class EventListComponent implements OnInit {
 
   onCreateEvent(): void {
     if (!this.newEvent.title || !this.newEvent.description || !this.newEvent.date || !this.newEvent.time || !this.newEvent.location) {
+      this.showToastMessage('Please fill in all fields', 'error');
       return;
     }
 
     this.creatingEvent = true;
-    
-    // Log the data being sent for debugging
+
     console.log('Creating event with data:', this.newEvent);
-    
+
     this.eventService.createEvent(this.newEvent).subscribe({
       next: (response) => {
         console.log('Event created successfully:', response);
@@ -244,16 +283,15 @@ export class EventListComponent implements OnInit {
       error: (error) => {
         console.error('Error creating event:', error);
         this.creatingEvent = false;
-        
+
         // Extract validation errors from the API response
         this.createEventError = 'Failed to create event';
         this.validationErrors = [];
-        
+
         if (error?.error?.errors && Array.isArray(error.error.errors)) {
           this.validationErrors = error.error.errors.map((err: any) => {
             const field = err.field || err.property || err.path || 'Field';
             const message = err.message || err.defaultMessage || 'Invalid value';
-            // Capitalize first letter and format field name
             const formattedField = field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1').trim();
             return `${formattedField}: ${message}`;
           });
@@ -270,7 +308,6 @@ export class EventListComponent implements OnInit {
   // Refresh events
   refreshEvents(): void {
     this.searchQuery = '';
-    this.filteredEvents = [...this.allEvents];
     this.loadEvents();
   }
 
