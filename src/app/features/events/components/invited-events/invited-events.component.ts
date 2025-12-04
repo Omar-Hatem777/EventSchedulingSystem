@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NavbarComponent } from '../../../../shared/components/navbar/navbar.component';
-import Event, { ResponseStatus, EventStatus, InvitedEvent } from '../../../../core/models/event.model';
+import Event, { ResponseStatus, EventStatus, InvitedEvent, SearchFilters } from '../../../../core/models/event.model';
 import { EventService } from '../../services/event.service';
 
 @Component({
@@ -21,9 +21,19 @@ export class InvitedEventsComponent implements OnInit {
     successMessage: string | null = null;
     respondingEventId: string | null = null;
     respondedStatus: Record<string, ResponseStatus> = {};
+    currentUserId: string = ''; // ADD THIS - to store current user ID
 
     ResponseStatus = ResponseStatus;
     EventStatus = EventStatus;
+
+    // Search filters - same as event-list
+    searchFilters = {
+        keyword: '',
+        date: '',
+        userStatus: '',
+        eventStatus: '',
+        role: ''
+    };
 
     showCreateEventModal = false;
     creatingEvent = false;
@@ -40,6 +50,12 @@ export class InvitedEventsComponent implements OnInit {
     constructor(private eventService: EventService) { }
 
     ngOnInit(): void {
+        // Get current user ID from localStorage
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        this.currentUserId = user.id || user.userId; // Adjust based on your user object structure
+
+        console.log('Current User ID:', this.currentUserId);
+
         this.fetchInvitedEvents();
     }
 
@@ -69,31 +85,119 @@ export class InvitedEventsComponent implements OnInit {
         });
     }
 
+    // Search with keyword input
     onSearchChange(): void {
-        const term = this.searchQuery.trim();
+        this.searchFilters.keyword = this.searchQuery.trim();
+        this.performSearch();
+    }
 
-        if (!term) {
+    // Perform search with all filters - UPDATED to filter invited events only
+    performSearch(): void {
+        // Check if any filter is set
+        const hasFilters =
+            this.searchFilters.keyword.trim() ||
+            this.searchFilters.date ||
+            this.searchFilters.userStatus ||
+            this.searchFilters.eventStatus ||
+            this.searchFilters.role;
+
+        // If no filters, show all invited events
+        if (!hasFilters) {
             this.filteredEvents = [...this.invitedEvents];
             return;
         }
 
+        // Only search if keyword is at least 2 characters (if provided)
+        if (this.searchFilters.keyword && this.searchFilters.keyword.length < 2) {
+            return;
+        }
+
         this.loading = true;
-        // Pass the search term as part of a SearchFilters object with keyword property
-        this.eventService.searchEvents({ keyword: term }).subscribe({
+
+        // Build search filters object
+        const filters: SearchFilters = {};
+
+        if (this.searchFilters.keyword.trim()) {
+            filters.keyword = this.searchFilters.keyword.trim();
+        }
+        if (this.searchFilters.date) {
+            filters.date = this.searchFilters.date;
+        }
+        if (this.searchFilters.userStatus) {
+            filters.userStatus = this.searchFilters.userStatus;
+        }
+        if (this.searchFilters.eventStatus) {
+            filters.eventStatus = this.searchFilters.eventStatus;
+        }
+        if (this.searchFilters.role) {
+            filters.role = this.searchFilters.role;
+        }
+
+        console.log('Searching with filters:', filters);
+
+        // Use the updated SearchFilters interface
+        this.eventService.searchEvents(filters).subscribe({
             next: (response) => {
-                if (response.success) {
-                    this.filteredEvents = response.data.eventsData as InvitedEvent[];
+                console.log('Search response:', response);
+                if (response.success && response.data) {
+                    // FILTER: Only show events where current user is NOT the organizer (invited events)
+                    // AND filter by role if specified (check userRole matches the filter)
+                    this.filteredEvents = response.data
+                        .filter(event => {
+                            // Must not be organizer
+                            const notOrganizer = String(event.userId) !== String(this.currentUserId);
+
+                            // If role filter is set, check if userRole matches
+                            const roleMatches = !this.searchFilters.role ||
+                                event.userRole === this.searchFilters.role;
+
+                            return notOrganizer && roleMatches;
+                        })
+                        .map(event => ({
+                            ...event,
+                            participantStatus: event.userStatus || 'Pending',
+                            participantRole: event.userRole || 'Attendee'
+                        })) as InvitedEvent[];
+
+                    console.log('Filtered to show only invited events (not organized by user):', this.filteredEvents);
+                    console.log('Role filter applied:', this.searchFilters.role || 'None');
+
+                    // Log pagination info if available
+                    if (response.pagination) {
+                        console.log('Pagination:', response.pagination);
+                    }
                 } else {
                     this.filteredEvents = [];
                 }
                 this.loading = false;
             },
-            error: () => {
+            error: (error) => {
+                console.error('Search error:', error);
                 this.loading = false;
-                this.filteredEvents = [];
-                this.error = 'Failed to search events';
+                // Don't clear results on error, keep showing current events
+                if (error.status !== 400) {
+                    this.error = 'Failed to search events';
+                }
             }
         });
+    }
+
+    // Filter change handlers
+    onFilterChange(): void {
+        this.performSearch();
+    }
+
+    // Clear all filters
+    clearFilters(): void {
+        this.searchQuery = '';
+        this.searchFilters = {
+            keyword: '',
+            date: '',
+            userStatus: '',
+            eventStatus: '',
+            role: ''
+        };
+        this.filteredEvents = [...this.invitedEvents];
     }
 
     onRespond(eventId: string, status: ResponseStatus): void {

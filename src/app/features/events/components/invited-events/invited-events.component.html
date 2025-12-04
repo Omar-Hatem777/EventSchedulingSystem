@@ -27,10 +27,68 @@
     {{ error }}
   </div>
 
-  <!-- Search input -->
+  <!-- Search Section -->
   <div class="search-section">
-    <input type="text" class="search-input" placeholder="Search events..." [(ngModel)]="searchQuery"
-      (input)="onSearchChange()" />
+    <div class="search-bar">
+      <i class="fa-solid fa-search search-icon"></i>
+      <input type="text" class="search-input" placeholder="Search events by keyword..." [(ngModel)]="searchQuery"
+        (input)="onSearchChange()" />
+    </div>
+
+    <!-- Filters Row -->
+    <div class="filters-container">
+      <div class="filter-group">
+        <label for="date" class="filter-label">
+          <i class="fa-solid fa-calendar"></i> Date
+        </label>
+        <input type="date" id="date" class="filter-input" [(ngModel)]="searchFilters.date"
+          (change)="onFilterChange()" />
+      </div>
+
+      <div class="filter-group">
+        <label for="eventStatus" class="filter-label">
+          <i class="fa-solid fa-tag"></i> Event Status
+        </label>
+        <select id="eventStatus" class="filter-select" [(ngModel)]="searchFilters.eventStatus"
+          (change)="onFilterChange()">
+          <option value="">All Statuses</option>
+          <option value="Active">Active</option>
+          <option value="Cancelled">Cancelled</option>
+          <option value="Postponed">Postponed</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="userStatus" class="filter-label">
+          <i class="fa-solid fa-check-circle"></i> My Response
+        </label>
+        <select id="userStatus" class="filter-select" [(ngModel)]="searchFilters.userStatus"
+          (change)="onFilterChange()">
+          <option value="">All Responses</option>
+          <option value="Pending">Pending</option>
+          <option value="Going">Going</option>
+          <option value="Maybe">Maybe</option>
+          <option value="NotGoing">Not Going</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="role" class="filter-label">
+          <i class="fa-solid fa-user-tag"></i> Role
+        </label>
+        <select id="role" class="filter-select" [(ngModel)]="searchFilters.role" (change)="onFilterChange()">
+          <option value="">All Roles</option>
+          <option value="Collaborator">Collaborator</option>
+          <option value="Attendee">Attendee</option>
+        </select>
+      </div>
+
+      <div class="filter-group filter-actions">
+        <button class="btn-clear-filters" (click)="clearFilters()" title="Clear all filters">
+          <i class="fa-solid fa-times"></i> Clear Filters
+        </button>
+      </div>
+    </div>
   </div>
 
   <div *ngIf="loading" class="loading-state">
@@ -87,7 +145,7 @@
         You responded: <strong>{{ getResponseLabel(respondedStatus[event.id]) }}</strong>
       </div>
 
-      <!-- Only show response buttons if event is not cancelled -->
+      <!-- Only show response buttons if event status is not Cancelled -->
       <div class="response-actions" *ngIf="event.status !== EventStatus.CANCELLED">
         <button type="button" class="btn-response btn-going" (click)="onRespond(event.id, ResponseStatus.GOING)"
           [disabled]="respondingEventId === event.id">
@@ -107,14 +165,22 @@
           Not Going
         </button>
       </div>
+
+      <!-- Optional: Show a message when event is cancelled -->
+      <div class="cancelled-message" *ngIf="event.status === EventStatus.CANCELLED">
+        <i class="fa-solid fa-ban"></i>
+        This event has been cancelled by the organizer
+      </div>
     </article>
   </div>
 
   <div *ngIf="!loading && filteredEvents.length === 0" class="empty-state">
     <i class="fa-solid fa-envelope-circle-check"></i>
-    <h3>{{ searchQuery ? 'No events found' : 'No invitations yet' }}</h3>
-    <p>{{ searchQuery ? 'Try a different search term.' : 'When someone invites you to an event, it will show up here.'
-      }}</p>
+    <h3>{{ searchQuery || searchFilters.date || searchFilters.eventStatus || searchFilters.userStatus ||
+      searchFilters.role ? 'No events found' : 'No invitations yet' }}</h3>
+    <p>{{ searchQuery || searchFilters.date || searchFilters.eventStatus || searchFilters.userStatus ||
+      searchFilters.role ? 'Try different filters.' : 'When someone invites you to an event, it will show up here.' }}
+    </p>
   </div>
 </section>
 

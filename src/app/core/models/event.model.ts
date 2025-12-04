@@ -177,3 +177,33 @@ export interface SearchFilters {
   status?: EventStatus;
   role?: string;
 }
+
+// Add a new interface for search results
+export interface SearchEvent extends Event {
+  userRole?: string;      // Role of current user in this event
+  userStatus?: string;    // Status of current user for this event
+  relevance?: number;     // Search relevance score
+  snippet?: string;       // Search result snippet
+}
+
+// Update SearchFilters to match backend
+export interface SearchFilters {
+  keyword?: string;
+  date?: string;          // Changed from startDate/endDate
+  userStatus?: string;    // Added - filter by user's response status
+  eventStatus?: string;   // Changed from 'status'
+  role?: string;
+}
+
+// Add search response interface
+export interface SearchEventsResponse {
+  success: boolean;
+  data: SearchEvent[];    // Direct array, not wrapped in eventsData
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  };
+  searchTerm?: string;
+}

@@ -29,46 +29,29 @@
 
     <!-- Filters Row -->
     <div class="filters-container">
+      <!-- UPDATED: Single date filter instead of startDate/endDate -->
       <div class="filter-group">
-        <label for="startDate" class="filter-label">
-          <i class="fa-solid fa-calendar"></i> Start Date
+        <label for="date" class="filter-label">
+          <i class="fa-solid fa-calendar"></i> Date
         </label>
-        <input type="date" id="startDate" class="filter-input" [(ngModel)]="searchFilters.startDate"
+        <input type="date" id="date" class="filter-input" [(ngModel)]="searchFilters.date"
           (change)="onFilterChange()" />
       </div>
 
+      <!-- UPDATED: Changed from 'status' to 'eventStatus' -->
       <div class="filter-group">
-        <label for="endDate" class="filter-label">
-          <i class="fa-solid fa-calendar"></i> End Date
+        <label for="eventStatus" class="filter-label">
+          <i class="fa-solid fa-tag"></i> Event Status
         </label>
-        <input type="date" id="endDate" class="filter-input" [(ngModel)]="searchFilters.endDate"
-          (change)="onFilterChange()" />
-      </div>
-
-      <div class="filter-group">
-        <label for="status" class="filter-label">
-          <i class="fa-solid fa-tag"></i> Status
-        </label>
-        <select id="status" class="filter-select" [(ngModel)]="searchFilters.status" (change)="onFilterChange()">
+        <select id="eventStatus" class="filter-select" [(ngModel)]="searchFilters.eventStatus"
+          (change)="onFilterChange()">
           <option value="">All Statuses</option>
           <option value="Active">Active</option>
           <option value="Cancelled">Cancelled</option>
           <option value="Postponed">Postponed</option>
         </select>
       </div>
-
-      <div class="filter-group">
-        <label for="role" class="filter-label">
-          <i class="fa-solid fa-user-tag"></i> Role
-        </label>
-        <select id="role" class="filter-select" [(ngModel)]="searchFilters.role" (change)="onFilterChange()">
-          <option value="">All Roles</option>
-          <option value="Organizer">Organizer</option>
-          <option value="Collaborator">Collaborator</option>
-          <option value="Attendee">Attendee</option>
-        </select>
-      </div>
-
+      
       <div class="filter-group filter-actions">
         <button class="btn-clear-filters" (click)="clearFilters()" title="Clear all filters">
           <i class="fa-solid fa-times"></i> Clear Filters
@@ -142,7 +125,7 @@
 
           <div class="participant-status">
             <span class="status-badge" [ngClass]="'badge-' + ((p.status || '').toLowerCase() || 'pending')">
-              {{ p.status || 'Pending' }}
+              {{ p.status || 'Pending' }}
             </span>
           </div>
         </div>
@@ -153,7 +136,7 @@
         <p>No participants yet</p>
       </div>
     </div>
-      
+
   </div>
 </div>
 
@@ -213,14 +196,12 @@
         <i class="fa-solid fa-calendar-plus"></i>
         Create New Event
       </h2>
-      <button class="btn-close" (click)="closeCreateEventModal()"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
     <div class="modal-body">
-      <!-- Error Display -->
       <div *ngIf="createEventError" class="alert alert-error">
-        <i class="fa-solid fa-exclamation-circle"></i>
-        <div class="error-content">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div>
           <strong>{{ createEventError }}</strong>
           <ul *ngIf="validationErrors.length > 0" class="validation-errors">
             <li *ngFor="let err of validationErrors">{{ err }}</li>
@@ -250,7 +231,7 @@
             <i class="fa-solid fa-calendar"></i> Date
           </label>
           <input type="text" id="date" class="form-control" [(ngModel)]="newEvent.date" name="date"
-            placeholder="YYYY-MM-DD (e.g., 2024-12-25)" (input)="clearErrors()" required />
+            placeholder="YYYY-MM-DD" (input)="clearErrors()" required />
           <small class="form-hint">Format: YYYY-MM-DD</small>
         </div>
 
@@ -259,13 +240,13 @@
             <i class="fa-solid fa-clock"></i> Time
           </label>
           <input type="text" id="time" class="form-control" [(ngModel)]="newEvent.time" name="time"
-            placeholder="HH:MM:SS (e.g., 14:30:00)" (input)="clearErrors()" required />
-          <small class="form-hint">Format: HH:MM:SS (24-hour format)</small>
+            placeholder="HH:MM:SS" (input)="clearErrors()" required />
+          <small class="form-hint">Format: HH:MM:SS (24-hour)</small>
         </div>
 
         <div class="form-group">
           <label for="location">
-            <i class="fa-solid fa-map-marker-alt"></i> Location
+            <i class="fa-solid fa-location-dot"></i> Location
           </label>
           <input type="text" id="location" class="form-control" [(ngModel)]="newEvent.location" name="location"
             placeholder="Enter event location" required />

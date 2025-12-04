@@ -10,7 +10,8 @@ import Event, {
   UpdateStatusResponse,
   EventsListResponse,
   InvitedEvent,
-  SearchFilters
+  SearchFilters,
+  SearchEventsResponse
 } from '../../../core/models/event.model';
 
 @Injectable({
@@ -294,7 +295,7 @@ export class EventService {
   }
 
   // Search events with filters
-  searchEvents(filters: SearchFilters): Observable<any> {
+  searchEvents(filters: SearchFilters): Observable<SearchEventsResponse> {
     console.log('Searching events with filters:', filters);
     this.loadingSubject.next(true);
     this.errorSubject.next(null);

@@ -13,7 +13,8 @@ import {
   EventStatus,
   ResponseStatus,
   UpdateStatusResponse,
-  SearchFilters
+  SearchFilters,
+  SearchEventsResponse
 } from '../../../core/models/event.model';
 
 @Injectable({
@@ -77,7 +78,7 @@ export class EventApiService {
   }
 
   // Search events with filters
-  searchEvents(filters: SearchFilters): Observable<any> {
+  searchEvents(filters: SearchFilters): Observable<SearchEventsResponse> {
     let params = new HttpParams();
 
     // Add keyword
@@ -85,17 +86,19 @@ export class EventApiService {
       params = params.set('keyword', filters.keyword.trim());
     }
 
-    // Add date range
-    if (filters.startDate) {
-      params = params.set('startDate', filters.startDate);
-    }
-    if (filters.endDate) {
-      params = params.set('endDate', filters.endDate);
+    // Add date (single date, not range)
+    if (filters.date) {
+      params = params.set('date', filters.date);
     }
 
-    // Add status
-    if (filters.status) {
-      params = params.set('status', filters.status);
+    // Add userStatus (participant's response status)
+    if (filters.userStatus) {
+      params = params.set('userStatus', filters.userStatus);
+    }
+
+    // Add eventStatus (event's status: Active/Cancelled/Postponed)
+    if (filters.eventStatus) {
+      params = params.set('eventStatus', filters.eventStatus);
     }
 
     // Add role
@@ -103,7 +106,7 @@ export class EventApiService {
       params = params.set('role', filters.role);
     }
 
-    return this.http.get<any>(`${this.apiUrl}/search`, { params });
+    return this.http.get<SearchEventsResponse>(`${this.apiUrl}/search`, { params });
   }
 
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { AuthApiService } from '../../features/auth/services/auth-api.service';
@@ -22,7 +22,6 @@ export class AuthService {
     // Check if user is already logged in on service initialization
     this.checkAuthStatus();
   }
-
 
   //Check authentication status on app load
   private checkAuthStatus(): void {

@@ -19,13 +19,14 @@ export class EventListComponent implements OnInit {
   filteredEvents: Event[] = [];
   searchQuery = '';
   loading = false;
+  currentUserId: string = ''; // ADD THIS - to store current user ID
 
-  // Search filters
+  // Search filters - UPDATED to match backend
   searchFilters = {
     keyword: '',
-    startDate: '',
-    endDate: '',
-    status: '',
+    date: '',
+    userStatus: '',
+    eventStatus: '',
     role: ''
   };
 
@@ -62,6 +63,12 @@ export class EventListComponent implements OnInit {
   constructor(private eventService: EventService, private router: Router) { }
 
   ngOnInit(): void {
+    // Get current user ID from localStorage
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    this.currentUserId = user.id || user.userId; // Adjust based on your user object structure
+
+    console.log('Current User ID:', this.currentUserId);
+
     this.loadEvents();
   }
 
@@ -70,7 +77,6 @@ export class EventListComponent implements OnInit {
     this.eventService.getAllOrganizedEvents().subscribe({
       next: (response) => {
         console.log('Load events response:', response);
-        // Fix: Check if response.data is already the array or if it has eventsData
         if (response.data.eventsData) {
           this.allEvents = response.data.eventsData;
         } else if (Array.isArray(response.data)) {
@@ -95,17 +101,17 @@ export class EventListComponent implements OnInit {
     this.performSearch();
   }
 
-  // Perform search with all filters
+  // Perform search with all filters - UPDATED with userId filter
   performSearch(): void {
     // Check if any filter is set
-    const hasFilters = 
+    const hasFilters =
       this.searchFilters.keyword.trim() ||
-      this.searchFilters.startDate ||
-      this.searchFilters.endDate ||
-      this.searchFilters.status ||
+      this.searchFilters.date ||
+      this.searchFilters.userStatus ||
+      this.searchFilters.eventStatus ||
       this.searchFilters.role;
 
-    // If no filters, show all events
+    // If no filters, show all events from allEvents
     if (!hasFilters) {
       this.filteredEvents = [...this.allEvents];
       return;
@@ -117,36 +123,41 @@ export class EventListComponent implements OnInit {
     }
 
     this.loading = true;
-    
+
     // Build search filters object
     const filters: SearchFilters = {};
+
     if (this.searchFilters.keyword.trim()) {
       filters.keyword = this.searchFilters.keyword.trim();
     }
-    if (this.searchFilters.startDate) {
-      filters.startDate = this.searchFilters.startDate;
+    if (this.searchFilters.date) {
+      filters.date = this.searchFilters.date;
     }
-    if (this.searchFilters.endDate) {
-      filters.endDate = this.searchFilters.endDate;
+    if (this.searchFilters.userStatus) {
+      filters.userStatus = this.searchFilters.userStatus;
     }
-    if (this.searchFilters.status) {
-      filters.status = this.searchFilters.status as EventStatus;
+    if (this.searchFilters.eventStatus) {
+      filters.eventStatus = this.searchFilters.eventStatus;
     }
     if (this.searchFilters.role) {
       filters.role = this.searchFilters.role;
     }
 
+    console.log('Searching with filters:', filters);
+
     this.eventService.searchEvents(filters).subscribe({
       next: (response) => {
         console.log('Search response:', response);
-        if (response.success) {
-          // Fix: Backend returns response.data directly as array
-          if (Array.isArray(response.data)) {
-            this.filteredEvents = response.data;
-          } else if (response.data.eventsData) {
-            this.filteredEvents = response.data.eventsData;
-          } else {
-            this.filteredEvents = [];
+        if (response.success && response.data) {
+          // FILTER: Only show events created by current user (organized events)
+          this.filteredEvents = response.data.filter(event => {
+            return String(event.userId) === String(this.currentUserId);
+          });
+
+          console.log('Filtered to show only organized events:', this.filteredEvents);
+
+          if (response.pagination) {
+            console.log('Pagination:', response.pagination);
           }
         } else {
           this.filteredEvents = [];
@@ -156,8 +167,6 @@ export class EventListComponent implements OnInit {
       error: (error) => {
         console.error('Search error:', error);
         this.loading = false;
-        // Don't clear results on error, keep showing current events
-        // Only show error toast if it's not a validation error (400)
         if (error.status !== 400) {
           this.showToastMessage('Failed to search events', 'error');
         }
@@ -170,14 +179,14 @@ export class EventListComponent implements OnInit {
     this.performSearch();
   }
 
-  // Clear all filters
+  // Clear all filters - UPDATED
   clearFilters(): void {
     this.searchQuery = '';
     this.searchFilters = {
       keyword: '',
-      startDate: '',
-      endDate: '',
-      status: '',
+      date: '',
+      userStatus: '',
+      eventStatus: '',
       role: ''
     };
     this.filteredEvents = [...this.allEvents];
@@ -222,7 +231,6 @@ export class EventListComponent implements OnInit {
     this.eventService.getEventParticipants(event.id).subscribe({
       next: (res) => {
         console.log('Participants response:', res);
-        // Handle different response structures
         let participantsData = [];
         if (res.data.participantsData) {
           participantsData = res.data.participantsData;
@@ -334,7 +342,6 @@ export class EventListComponent implements OnInit {
         console.log('Event created successfully:', response);
         this.showToastMessage('Event created successfully!', 'success');
         this.closeCreateEventModal();
-        // Auto-refresh events after creation
         this.loadEvents();
         this.creatingEvent = false;
       },
@@ -342,7 +349,6 @@ export class EventListComponent implements OnInit {
         console.error('Error creating event:', error);
         this.creatingEvent = false;
 
-        // Extract validation errors from the API response
         this.createEventError = 'Failed to create event';
         this.validationErrors = [];
 
@@ -363,14 +369,14 @@ export class EventListComponent implements OnInit {
     });
   }
 
-  // Refresh events
+  // Refresh events - UPDATED
   refreshEvents(): void {
     this.searchQuery = '';
     this.searchFilters = {
       keyword: '',
-      startDate: '',
-      endDate: '',
-      status: '',
+      date: '',
+      userStatus: '',
+      eventStatus: '',
       role: ''
     };
     this.loadEvents();
